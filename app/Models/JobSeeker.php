@@ -4,12 +4,12 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Company extends Authenticatable
+class JobSeeker extends Authenticatable
 {
-    protected $guard = 'company';
+    protected $guard = 'jobseeker';
 
     protected $fillable = [
-        'name', 'email', 'company_name', 'password',
+        'name', 'email', 'password',
     ];
 
     protected $hidden = [

@@ -15,6 +15,14 @@ Route::get('/terms', HomeController::class . '@terms')->name('terms');
 
 Route::get('/privacy-policy', HomeController::class . '@privacyPolicy')->name('privacyPolicy');
 
+//jobseeker login
+Route::get('login/jobseeker', 'Auth\JobSeekerLoginController@showLoginForm');
+Route::post('login/jobseeker', 'Auth\JobSeekerLoginController@login');
+
+// Company Login
+Route::get('login/company', 'Auth\CompanyLoginController@showLoginForm');
+Route::post('login/company', 'Auth\CompanyLoginController@login');
+
 // Admin Routes
 Route::get('/admin/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/admin/login', [LoginController::class, 'login']);
