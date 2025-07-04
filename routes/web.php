@@ -251,3 +251,7 @@ Route::middleware('auth')->group(function () {
         return view('admin.cron.setup_help');
     })->name('admin.cron');
 });
+
+// Jobseeker Registration
+Route::get('register/jobseeker', 'Auth\JobSeekerRegisterController@showRegistrationForm')->name('register.jobseeker');
+Route::post('register/jobseeker', 'Auth\JobSeekerRegisterController@register')->name('register.jobseeker.submit');
