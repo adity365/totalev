@@ -269,6 +269,7 @@ Route::middleware('auth')->group(function () {
 // Jobseeker Registration
 Route::get('register/jobseeker', [App\Http\Controllers\Auth\JobSeekerRegisterController::class, 'showRegistrationForm'])->name('register.jobseeker');
 Route::post('register/jobseeker', [App\Http\Controllers\Auth\JobSeekerRegisterController::class, 'register'])->name('register.jobseeker.submit');
+Route::post('register/jobseeker/send-otp', [App\Http\Controllers\Auth\JobSeekerRegisterController::class, 'sendOTP'])->name('register.jobseeker.send-otp');
 
 // Test route to verify controller exists
 Route::get('test/jobseeker-controller', function() {

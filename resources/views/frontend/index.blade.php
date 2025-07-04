@@ -1355,11 +1355,37 @@
                                         </div>
                                     </div>
                                     <div class="col-md-6">
+                                        <label for="email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="email" name="email" required>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="otp" class="form-label">OTP</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="otp" name="otp" placeholder="Enter OTP" required>
+                                            <button type="button" class="btn btn-outline-primary" id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
                                         <label for="password" class="form-label">Password</label>
                                         <div class="input-group">
                                             <input type="password" class="form-control" id="password" name="password" required>
                                             <span class="input-group-text">
                                                 <i class="fa fa-eye toggle-password" onclick="togglePassword('password')"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="password_confirmation" class="form-label">Confirm Password</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required>
+                                            <span class="input-group-text">
+                                                <i class="fa fa-eye toggle-password" onclick="togglePassword('password_confirmation')"></i>
                                             </span>
                                         </div>
                                     </div>
@@ -1450,18 +1476,18 @@
             });
 
             function loadCountries() {
-                fetch('https://api.countrystatecity.in/v1/countries', {
-                    headers: {
-                        'X-CSCAPI-KEY': 'YOUR_API_KEY_HERE' // You'll need to get a free API key from https://countrystatecity.in/
-                    }
-                })
+                // Using REST Countries API (free, no key required)
+                fetch('https://restcountries.com/v3.1/all?fields=name,cca2')
                 .then(response => response.json())
                 .then(data => {
                     const countrySelect = document.getElementById('country');
+                    // Sort countries by name
+                    data.sort((a, b) => a.name.common.localeCompare(b.name.common));
+                    
                     data.forEach(country => {
                         const option = document.createElement('option');
-                        option.value = country.iso2;
-                        option.textContent = country.name;
+                        option.value = country.cca2;
+                        option.textContent = country.name.common;
                         countrySelect.appendChild(option);
                     });
                 })
@@ -1490,70 +1516,125 @@
                 
                 if (!countryCode) return;
 
-                fetch(`https://api.countrystatecity.in/v1/countries/${countryCode}/states`, {
+                // Static states data for common countries
+                const stateData = {
+                    'IN': ['Maharashtra', 'Delhi', 'Karnataka', 'Tamil Nadu', 'Uttar Pradesh', 'Gujarat', 'Rajasthan', 'Madhya Pradesh', 'West Bengal', 'Andhra Pradesh'],
+                    'US': ['California', 'Texas', 'New York', 'Florida', 'Illinois', 'Pennsylvania', 'Ohio', 'Georgia', 'North Carolina', 'Michigan'],
+                    'CA': ['Ontario', 'Quebec', 'British Columbia', 'Alberta', 'Manitoba', 'Saskatchewan', 'Nova Scotia', 'New Brunswick'],
+                    'AU': ['New South Wales', 'Victoria', 'Queensland', 'Western Australia', 'South Australia', 'Tasmania', 'Northern Territory'],
+                    'GB': ['England', 'Scotland', 'Wales', 'Northern Ireland'],
+                    'India': ['Maharashtra', 'Delhi', 'Karnataka', 'Tamil Nadu', 'Uttar Pradesh', 'Gujarat', 'Rajasthan', 'Madhya Pradesh', 'West Bengal', 'Andhra Pradesh'],
+                    'United States': ['California', 'Texas', 'New York', 'Florida', 'Illinois', 'Pennsylvania', 'Ohio', 'Georgia', 'North Carolina', 'Michigan'],
+                    'Canada': ['Ontario', 'Quebec', 'British Columbia', 'Alberta', 'Manitoba', 'Saskatchewan', 'Nova Scotia', 'New Brunswick'],
+                    'Australia': ['New South Wales', 'Victoria', 'Queensland', 'Western Australia', 'South Australia', 'Tasmania', 'Northern Territory'],
+                    'United Kingdom': ['England', 'Scotland', 'Wales', 'Northern Ireland']
+                };
+                
+                // Try API first, then fallback to static data
+                fetch(`https://wft-geo-db.p.rapidapi.com/v1/geo/countries/${countryCode}/regions`, {
                     headers: {
-                        'X-CSCAPI-KEY': 'YOUR_API_KEY_HERE'
+                        'X-RapidAPI-Key': 'YOUR_RAPIDAPI_KEY', // Optional: Get free key from RapidAPI
+                        'X-RapidAPI-Host': 'wft-geo-db.p.rapidapi.com'
                     }
                 })
                 .then(response => response.json())
                 .then(data => {
-                    data.forEach(state => {
-                        const option = document.createElement('option');
-                        option.value = state.iso2;
-                        option.textContent = state.name;
-                        stateSelect.appendChild(option);
-                    });
+                    if (data.data && data.data.length > 0) {
+                        data.data.forEach(state => {
+                            const option = document.createElement('option');
+                            option.value = state.name;
+                            option.textContent = state.name;
+                            stateSelect.appendChild(option);
+                        });
+                    } else {
+                        // Fallback to static data
+                        loadStaticStates(countryCode);
+                    }
                 })
                 .catch(error => {
-                    console.error('Error loading states:', error);
-                    // Fallback to static states for India
-                    if (countryCode === 'IN' || countryCode === 'India') {
-                        const states = ['Maharashtra', 'Delhi', 'Karnataka', 'Tamil Nadu', 'Uttar Pradesh'];
-                        states.forEach(state => {
+                    console.error('Error loading states from API:', error);
+                    // Fallback to static data
+                    loadStaticStates(countryCode);
+                });
+                
+                function loadStaticStates(countryCode) {
+                    if (stateData[countryCode]) {
+                        stateData[countryCode].forEach(state => {
                             const option = document.createElement('option');
                             option.value = state;
                             option.textContent = state;
                             stateSelect.appendChild(option);
                         });
                     }
-                });
+                }
             }
 
             function loadCities() {
                 const countryCode = document.getElementById('country').value;
-                const stateCode = document.getElementById('state').value;
+                const stateName = document.getElementById('state').value;
                 const citySelect = document.getElementById('city');
                 
                 // Clear existing options
                 citySelect.innerHTML = '<option value="">Select City</option>';
                 
-                if (!countryCode || !stateCode) return;
+                if (!countryCode || !stateName) return;
 
-                fetch(`https://api.countrystatecity.in/v1/countries/${countryCode}/states/${stateCode}/cities`, {
+                // Static cities data for common states
+                const cityData = {
+                    'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Thane', 'Nashik', 'Aurangabad', 'Solapur', 'Kolhapur'],
+                    'Delhi': ['New Delhi', 'Delhi', 'Gurgaon', 'Noida', 'Faridabad', 'Ghaziabad'],
+                    'Karnataka': ['Bangalore', 'Mysore', 'Hubli', 'Mangalore', 'Belgaum', 'Gulbarga'],
+                    'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai', 'Salem', 'Tiruchirappalli', 'Vellore'],
+                    'Uttar Pradesh': ['Lucknow', 'Kanpur', 'Varanasi', 'Agra', 'Allahabad', 'Bareilly'],
+                    'Gujarat': ['Ahmedabad', 'Surat', 'Vadodara', 'Rajkot', 'Bhavnagar', 'Jamnagar'],
+                    'Rajasthan': ['Jaipur', 'Jodhpur', 'Udaipur', 'Kota', 'Bikaner', 'Ajmer'],
+                    'California': ['Los Angeles', 'San Francisco', 'San Diego', 'Sacramento', 'San Jose', 'Fresno'],
+                    'Texas': ['Houston', 'Dallas', 'Austin', 'San Antonio', 'Fort Worth', 'El Paso'],
+                    'New York': ['New York City', 'Buffalo', 'Rochester', 'Syracuse', 'Albany', 'Yonkers'],
+                    'Florida': ['Miami', 'Orlando', 'Tampa', 'Jacksonville', 'Fort Lauderdale', 'Tallahassee'],
+                    'Ontario': ['Toronto', 'Ottawa', 'Mississauga', 'Brampton', 'Hamilton', 'London'],
+                    'Quebec': ['Montreal', 'Quebec City', 'Laval', 'Gatineau', 'Longueuil', 'Sherbrooke'],
+                    'New South Wales': ['Sydney', 'Newcastle', 'Wollongong', 'Central Coast', 'Wagga Wagga'],
+                    'Victoria': ['Melbourne', 'Geelong', 'Ballarat', 'Bendigo', 'Shepparton', 'Mildura']
+                };
+                
+                // Try API first, then fallback to static data
+                fetch(`https://wft-geo-db.p.rapidapi.com/v1/geo/cities?countryIds=${countryCode}&namePrefix=${stateName}&limit=10`, {
                     headers: {
-                        'X-CSCAPI-KEY': 'YOUR_API_KEY_HERE'
+                        'X-RapidAPI-Key': 'YOUR_RAPIDAPI_KEY', // Optional: Get free key from RapidAPI
+                        'X-RapidAPI-Host': 'wft-geo-db.p.rapidapi.com'
                     }
                 })
                 .then(response => response.json())
                 .then(data => {
-                    data.forEach(city => {
-                        const option = document.createElement('option');
-                        option.value = city.name;
-                        option.textContent = city.name;
-                        citySelect.appendChild(option);
-                    });
+                    if (data.data && data.data.length > 0) {
+                        data.data.forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city.city;
+                            option.textContent = city.city;
+                            citySelect.appendChild(option);
+                        });
+                    } else {
+                        // Fallback to static data
+                        loadStaticCities(stateName);
+                    }
                 })
                 .catch(error => {
-                    console.error('Error loading cities:', error);
-                    // Fallback to static cities
-                    const cities = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata'];
-                    cities.forEach(city => {
-                        const option = document.createElement('option');
-                        option.value = city;
-                        option.textContent = city;
-                        citySelect.appendChild(option);
-                    });
+                    console.error('Error loading cities from API:', error);
+                    // Fallback to static data
+                    loadStaticCities(stateName);
                 });
+                
+                function loadStaticCities(stateName) {
+                    if (cityData[stateName]) {
+                        cityData[stateName].forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city;
+                            option.textContent = city;
+                            citySelect.appendChild(option);
+                        });
+                    }
+                }
             }
 
             // Password toggle functionality
@@ -1570,6 +1651,63 @@
                     icon.classList.remove('fa-eye-slash');
                     icon.classList.add('fa-eye');
                 }
+            }
+
+            // OTP functionality
+            function sendOTP() {
+                const mobile = document.getElementById('mobile').value;
+                const email = document.getElementById('email').value;
+                const name = document.getElementById('name').value;
+                const sendOtpBtn = document.getElementById('sendOtpBtn');
+                
+                if (!mobile || !email || !name) {
+                    alert('Please enter your name, email, and mobile number first.');
+                    return;
+                }
+                
+                // Disable button and show loading
+                sendOtpBtn.disabled = true;
+                sendOtpBtn.textContent = 'Sending...';
+                
+                fetch('{{ route("register.jobseeker.send-otp") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ 
+                        mobile: mobile,
+                        email: email,
+                        name: name
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        // Start countdown timer
+                        let countdown = 60;
+                        const timer = setInterval(() => {
+                            sendOtpBtn.textContent = `Resend (${countdown}s)`;
+                            countdown--;
+                            if (countdown < 0) {
+                                clearInterval(timer);
+                                sendOtpBtn.disabled = false;
+                                sendOtpBtn.textContent = 'Send OTP';
+                            }
+                        }, 1000);
+                    } else {
+                        alert(data.message);
+                        sendOtpBtn.disabled = false;
+                        sendOtpBtn.textContent = 'Send OTP';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to send OTP. Please try again.');
+                    sendOtpBtn.disabled = false;
+                    sendOtpBtn.textContent = 'Send OTP';
+                });
             }
 
             // Form submission debugging

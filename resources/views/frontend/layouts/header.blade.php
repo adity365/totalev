@@ -7,6 +7,7 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Favicon -->
     <link href="img/favicon.ico" rel="icon">
@@ -70,15 +71,32 @@
                         </div>
                     </div>
                     <a href="#" class="nav-item nav-link"  data-bs-toggle="modal" data-bs-target="#registerModal"><i class="far fa-file-alt nav-icon"></i>CV Registration</a>
-                    <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fas fa-sign-in-alt nav-icon"></i>Sign In</a>
-                        <div class="dropdown-menu rounded-0 m-0">
-                            <!-- Button to Open Modal -->
-                            <a href="{{ route('login.jobseeker') }}" class="dropdown-item">Job Seeker Sign in</a>
-                            <a href="#" class="dropdown-item bordr" data-bs-toggle="modal" data-bs-target="#registerModal">Register</a>
-                            <a href="{{ route('login.company') }}" class="dropdown-item">Recruiter Sign in</a>
+                    @auth('jobseeker')
+                        <div class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle nav-icon"></i>{{ Auth::guard('jobseeker')->user()->name }}
+                            </a>
+                            <div class="dropdown-menu rounded-0 m-0">
+                                <a href="{{ route('jobseeker.dashboard') }}" class="dropdown-item">Dashboard</a>
+                                <a href="{{ route('jobseeker.profile.edit') }}" class="dropdown-item">Edit Profile</a>
+                                <hr class="dropdown-divider">
+                                <form method="POST" action="{{ route('logout.jobseeker') }}" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item">Logout</button>
+                                </form>
+                            </div>
                         </div>
-                    </div>
+                    @else
+                        <div class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fas fa-sign-in-alt nav-icon"></i>Sign In</a>
+                            <div class="dropdown-menu rounded-0 m-0">
+                                <!-- Button to Open Modal -->
+                                <a href="{{ route('login.jobseeker') }}" class="dropdown-item">Job Seeker Sign in</a>
+                                <a href="#" class="dropdown-item bordr" data-bs-toggle="modal" data-bs-target="#registerModal">Register</a>
+                                <a href="{{ route('login.company') }}" class="dropdown-item">Recruiter Sign in</a>
+                            </div>
+                        </div>
+                    @endauth
 
                     <!-- <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
