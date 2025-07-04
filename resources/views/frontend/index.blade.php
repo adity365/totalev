@@ -1303,8 +1303,25 @@
                         </div>
 
                         <div class="modal-body">
-                            {{-- <form method="POST" action="{{ route('register') }}"> --}}
+                            @if($errors->any())
+                                <div class="alert alert-danger">
+                                    <ul class="mb-0">
+                                        @foreach($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+
+                            @if(session('success'))
+                                <div class="alert alert-success">
+                                    {{ session('success') }}
+                                </div>
+                            @endif
+
+                            <form method="POST" action="{{ route('register.jobseeker.submit') }}" id="registrationForm">
                                 @csrf
+                                <input type="hidden" name="debug" value="1">
 
                                 <!-- Full Name -->
                                 <div class="mb-3">
@@ -1361,72 +1378,47 @@
                                     </div>
                                 </div>
 
-                                <!-- Email & Password -->
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="email" class="form-label">Email</label>
-                                        <input type="email" class="form-control" id="email" name="email" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="password2" class="form-label">Password</label>
-                                        <div class="input-group">
-                                            <input type="password" class="form-control" id="password2" name="password2" required>
-                                            <span class="input-group-text">
-                                                <i class="fa fa-eye toggle-password" onclick="togglePassword('password2')"></i>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Remember Me & Forgot Password -->
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="remember2">
-                                            <label class="form-check-label" for="remember2">Remember Me</label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6 text-end">
-                                        <a href="#" class="text-decoration-none">Forgot Password?</a>
-                                    </div>
-                                </div>
-
-                                <!-- City Dropdown -->
+                                <!-- Email -->
                                 <div class="mb-3">
-                                    <label for="city" class="form-label">City</label>
-                                    <select class="form-select" id="city" name="city">
-                                        <option selected>Select City</option>
-                                        <option value="agra">Agra</option>
-                                        <option value="ahmedabad"> Ahmedabad</option>
-                                        <option value="alwar">Alwar</option>
-                                        <option value="amla"> Amla</option>
-                                    </select>
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
                                 </div>
 
-                                <!-- Area & Pincode -->
+                                <!-- Country, State, City Dropdowns -->
                                 <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="area" class="form-label">Area</label>
-                                        {{-- <input type="text" class="form-control" id="area" name="area"> --}}
-                                        <select class="form-select" id="city" name="city">
-                                            <option selected>Select Area</option>
-                                            <option value="dayal-bagh">Dayal Bagh</option>
-                                            <option value="prahlad-nagar"> Prahlad Nagar</option>
-                                            <option value="alwarct">Alwar City</option>
-                                            <option value="betul-district"> Betul district</option>
+                                    <div class="col-md-4">
+                                        <label for="country" class="form-label">Country</label>
+                                        <select class="form-select" id="country" name="country" required>
+                                            <option value="">Select Country</option>
                                         </select>
                                     </div>
+                                    <div class="col-md-4">
+                                        <label for="state" class="form-label">State</label>
+                                        <select class="form-select" id="state" name="state" required>
+                                            <option value="">Select State</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="city" class="form-label">City</label>
+                                        <select class="form-select" id="city" name="city" required>
+                                            <option value="">Select City</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Pincode & Street Address -->
+                                <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label for="pincode" class="form-label">Pincode</label>
                                         <input type="text" class="form-control" id="pincode" name="pincode">
                                     </div>
+                                    <div class="col-md-6">
+                                        <label for="street_address" class="form-label">Street Address</label>
+                                        <input type="text" class="form-control" id="street_address" name="street_address">
+                                    </div>
                                 </div>
 
-                                <!-- Street Address -->
-                                <div class="mb-3">
-                                    <label for="street_address" class="form-label">Street Address</label>
-                                    <input type="text" class="form-control" id="street_address" name="street_address">
-                                </div>
+
 
                                 <!-- Recaptcha Code -->
                                 {{-- <div class="mb-3 text-center">
@@ -1440,6 +1432,155 @@
                                 </div>
 
                             </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Address JavaScript -->
+        <script>
+            // Load countries on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                loadCountries();
+                
+                // Add event listeners for cascading dropdowns
+                document.getElementById('country').addEventListener('change', loadStates);
+                document.getElementById('state').addEventListener('change', loadCities);
+            });
+
+            function loadCountries() {
+                fetch('https://api.countrystatecity.in/v1/countries', {
+                    headers: {
+                        'X-CSCAPI-KEY': 'YOUR_API_KEY_HERE' // You'll need to get a free API key from https://countrystatecity.in/
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const countrySelect = document.getElementById('country');
+                    data.forEach(country => {
+                        const option = document.createElement('option');
+                        option.value = country.iso2;
+                        option.textContent = country.name;
+                        countrySelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading countries:', error);
+                    // Fallback to static countries
+                    const countries = ['India', 'United States', 'United Kingdom', 'Canada', 'Australia'];
+                    const countrySelect = document.getElementById('country');
+                    countries.forEach(country => {
+                        const option = document.createElement('option');
+                        option.value = country;
+                        option.textContent = country;
+                        countrySelect.appendChild(option);
+                    });
+                });
+            }
+
+            function loadStates() {
+                const countryCode = document.getElementById('country').value;
+                const stateSelect = document.getElementById('state');
+                const citySelect = document.getElementById('city');
+                
+                // Clear existing options
+                stateSelect.innerHTML = '<option value="">Select State</option>';
+                citySelect.innerHTML = '<option value="">Select City</option>';
+                
+                if (!countryCode) return;
+
+                fetch(`https://api.countrystatecity.in/v1/countries/${countryCode}/states`, {
+                    headers: {
+                        'X-CSCAPI-KEY': 'YOUR_API_KEY_HERE'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(state => {
+                        const option = document.createElement('option');
+                        option.value = state.iso2;
+                        option.textContent = state.name;
+                        stateSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading states:', error);
+                    // Fallback to static states for India
+                    if (countryCode === 'IN' || countryCode === 'India') {
+                        const states = ['Maharashtra', 'Delhi', 'Karnataka', 'Tamil Nadu', 'Uttar Pradesh'];
+                        states.forEach(state => {
+                            const option = document.createElement('option');
+                            option.value = state;
+                            option.textContent = state;
+                            stateSelect.appendChild(option);
+                        });
+                    }
+                });
+            }
+
+            function loadCities() {
+                const countryCode = document.getElementById('country').value;
+                const stateCode = document.getElementById('state').value;
+                const citySelect = document.getElementById('city');
+                
+                // Clear existing options
+                citySelect.innerHTML = '<option value="">Select City</option>';
+                
+                if (!countryCode || !stateCode) return;
+
+                fetch(`https://api.countrystatecity.in/v1/countries/${countryCode}/states/${stateCode}/cities`, {
+                    headers: {
+                        'X-CSCAPI-KEY': 'YOUR_API_KEY_HERE'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(city => {
+                        const option = document.createElement('option');
+                        option.value = city.name;
+                        option.textContent = city.name;
+                        citySelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading cities:', error);
+                    // Fallback to static cities
+                    const cities = ['Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Kolkata'];
+                    cities.forEach(city => {
+                        const option = document.createElement('option');
+                        option.value = city;
+                        option.textContent = city;
+                        citySelect.appendChild(option);
+                    });
+                });
+            }
+
+            // Password toggle functionality
+            function togglePassword(fieldId) {
+                const field = document.getElementById(fieldId);
+                const icon = field.nextElementSibling.querySelector('i');
+                
+                if (field.type === 'password') {
+                    field.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    field.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            }
+
+            // Form submission debugging
+            document.getElementById('registrationForm').addEventListener('submit', function(e) {
+                console.log('Form submitted!');
+                const formData = new FormData(this);
+                for (let [key, value] of formData.entries()) {
+                    console.log(key + ': ' + value);
+                }
+            });
+        </script>
                         </div>
                     </div>
                 </div>

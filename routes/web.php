@@ -16,12 +16,26 @@ Route::get('/terms', HomeController::class . '@terms')->name('terms');
 Route::get('/privacy-policy', HomeController::class . '@privacyPolicy')->name('privacyPolicy');
 
 //jobseeker login
-Route::get('login/jobseeker', 'Auth\JobSeekerLoginController@showLoginForm');
-Route::post('login/jobseeker', 'Auth\JobSeekerLoginController@login');
+Route::get('login/jobseeker', [App\Http\Controllers\Auth\JobSeekerLoginController::class, 'showLoginForm'])->name('login.jobseeker');
+Route::post('login/jobseeker', [App\Http\Controllers\Auth\JobSeekerLoginController::class, 'login']);
+Route::post('logout/jobseeker', [App\Http\Controllers\Auth\JobSeekerLoginController::class, 'logout'])->name('logout.jobseeker');
+
+// Jobseeker Dashboard (protected routes)
+Route::middleware('auth:jobseeker')->group(function () {
+    Route::get('/jobseeker/dashboard', function() {
+        return view('jobseeker.dashboard');
+    })->name('jobseeker.dashboard');
+    
+    // Profile routes
+    Route::get('/jobseeker/profile/complete', [App\Http\Controllers\JobSeeker\ProfileController::class, 'completeProfile'])->name('jobseeker.profile.complete');
+    Route::post('/jobseeker/profile/store', [App\Http\Controllers\JobSeeker\ProfileController::class, 'storeProfile'])->name('jobseeker.profile.store');
+    Route::get('/jobseeker/profile/edit', [App\Http\Controllers\JobSeeker\ProfileController::class, 'editProfile'])->name('jobseeker.profile.edit');
+    Route::put('/jobseeker/profile/update', [App\Http\Controllers\JobSeeker\ProfileController::class, 'updateProfile'])->name('jobseeker.profile.update');
+});
 
 // Company Login
-Route::get('login/company', 'Auth\CompanyLoginController@showLoginForm');
-Route::post('login/company', 'Auth\CompanyLoginController@login');
+Route::get('login/company', [App\Http\Controllers\Auth\CompanyLoginController::class, 'showLoginForm'])->name('login.company');
+Route::post('login/company', [App\Http\Controllers\Auth\CompanyLoginController::class, 'login']);
 
 // Admin Routes
 Route::get('/admin/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -253,5 +267,10 @@ Route::middleware('auth')->group(function () {
 });
 
 // Jobseeker Registration
-Route::get('register/jobseeker', 'Auth\JobSeekerRegisterController@showRegistrationForm')->name('register.jobseeker');
-Route::post('register/jobseeker', 'Auth\JobSeekerRegisterController@register')->name('register.jobseeker.submit');
+Route::get('register/jobseeker', [App\Http\Controllers\Auth\JobSeekerRegisterController::class, 'showRegistrationForm'])->name('register.jobseeker');
+Route::post('register/jobseeker', [App\Http\Controllers\Auth\JobSeekerRegisterController::class, 'register'])->name('register.jobseeker.submit');
+
+// Test route to verify controller exists
+Route::get('test/jobseeker-controller', function() {
+    return 'JobSeekerRegisterController exists and is working!';
+})->name('test.jobseeker.controller');

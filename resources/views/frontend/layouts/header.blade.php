@@ -74,9 +74,9 @@
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fas fa-sign-in-alt nav-icon"></i>Sign In</a>
                         <div class="dropdown-menu rounded-0 m-0">
                             <!-- Button to Open Modal -->
-                            <a href="#" class="dropdown-item">Sign in</a>
-                            <a href="#" class="dropdown-item bordr">Register</a>
-                            <a href="#" class="dropdown-item">Recruiter Sign in</a>
+                            <a href="{{ route('login.jobseeker') }}" class="dropdown-item">Job Seeker Sign in</a>
+                            <a href="#" class="dropdown-item bordr" data-bs-toggle="modal" data-bs-target="#registerModal">Register</a>
+                            <a href="{{ route('login.company') }}" class="dropdown-item">Recruiter Sign in</a>
                         </div>
                     </div>
 
