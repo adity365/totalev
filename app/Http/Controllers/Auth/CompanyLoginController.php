@@ -16,11 +16,12 @@ class CompanyLoginController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
-
+        \Log::info('Company Login Attempt:', $credentials);
+        $user = \App\Models\Company::where('email', $credentials['email'])->first();
+        \Log::info('Company Found:', ['user' => $user ? $user->toArray() : null]);
         if (Auth::guard('company')->attempt($credentials)) {
             return redirect()->intended('/company/dashboard');
         }
-
         return back()->withErrors(['email' => 'Invalid login credentials.']);
     }
 }

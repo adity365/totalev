@@ -4,7 +4,7 @@ namespace App\Http\Controllers\JobSeeker;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\JobSeekerProfile;
+use App\Models\JobSeeker;
 use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
@@ -31,19 +31,16 @@ class ProfileController extends Controller
 
         $jobseeker = Auth::guard('jobseeker')->user();
         
-        $profile = JobSeekerProfile::updateOrCreate(
-            ['jobseeker_id' => $jobseeker->id],
-            [
-                'job_category' => $request->job_category,
-                'job_subcategory' => $request->job_subcategory,
-                'job_sub_subcategory' => $request->job_sub_subcategory,
-                'description' => $request->description,
-                'skills' => $request->skills,
-                'experience_level' => $request->experience_level,
-                'education_level' => $request->education_level,
-                'profile_completed' => true,
-            ]
-        );
+        $jobseeker->update([
+            'job_category' => $request->job_category,
+            'job_subcategory' => $request->job_subcategory,
+            'job_sub_subcategory' => $request->job_sub_subcategory,
+            'description' => $request->description,
+            'skills' => $request->skills,
+            'experience_level' => $request->experience_level,
+            'education_level' => $request->education_level,
+            'profile_completed' => true,
+        ]);
 
         return redirect()->route('jobseeker.dashboard')->with('success', 'Profile completed successfully!');
     }

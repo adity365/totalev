@@ -16,11 +16,12 @@ class JobSeekerLoginController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
-
+        \Log::info('JobSeeker Login Attempt:', $credentials);
+        $user = \App\Models\JobSeeker::where('email', $credentials['email'])->first();
+        \Log::info('JobSeeker Found:', ['user' => $user ? $user->toArray() : null]);
         if (Auth::guard('jobseeker')->attempt($credentials)) {
             return redirect()->intended('/jobseeker/dashboard')->with('success', 'Login successful!');
         }
-
         return back()->withErrors(['email' => 'Invalid login credentials.'])->withInput($request->only('email'));
     }
 

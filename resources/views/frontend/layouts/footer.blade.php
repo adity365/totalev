@@ -109,6 +109,7 @@
 <!-- Template Javascript -->
 <script src="{{url('frontend/js/main.js') }}"></script>
 <script src="{{ url('frontend/js/custom.js') }}"></script>
+@stack('scripts')
 </body>
 
 </html>
